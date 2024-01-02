@@ -1,4 +1,4 @@
-# Animal Behavior for *The Long Dark*
+# From Animal Behavior for *The Long Dark* by Remodor:
 
 This is a mod for **The Long Dark** by Hinterland Studio, Inc.
 
