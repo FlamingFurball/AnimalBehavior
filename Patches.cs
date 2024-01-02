@@ -1,0 +1,332 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Il2Cpp;
+using HarmonyLib;
+using UnityEngine;
+using Stream = System.IO.Stream;
+using StreamReader = System.IO.StreamReader;
+using MelonLoader;
+
+namespace AnimalBehavior
+{
+    using Settings = AB_Settings;
+    using StunBehavior = AnimalBehavior_Settings.StunBehavior;
+    using WolfHoldingGround = AnimalBehavior_Settings.WolfHoldingGround;
+    using WolfHoldingGroundWolves = AnimalBehavior_Settings.WolfHoldingGroundWolves;
+
+    //* Wolves holding ground behavior when player aims.
+    [HarmonyPatch(typeof(BaseAi), "IsPlayerFacingAi", new System.Type[] { typeof(Vector3), typeof(float) })]
+    internal class BaseAi_IsPlayerFacingAi2
+    {
+        internal static void Prefix(BaseAi __instance, Vector3 aiToTarget, ref float dotProductThreshold)
+        {
+            if (__instance.m_AiSubType == AiSubType.Wolf &&
+            (Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAim ||
+            Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAimRandom))
+            {
+                if (__instance.Timberwolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
+                {
+                    return;
+                }
+                if (__instance.NormalWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
+                {
+                    return;
+                }
+                if (__instance.StarvingWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
+                {
+                    return;
+                }
+                else
+                {
+                    dotProductThreshold = Settings.Get().wolf_holding_ground_aim_accuracy / 100f;
+                }
+            }
+
+
+        }
+        internal static void Postfix(BaseAi __instance, ref bool __result)
+        {
+            if (__result && __instance.m_AiSubType == AiSubType.Wolf && Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAimRandom)
+            {
+                if (__instance.Timberwolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
+                {
+                    return;
+                }
+                if (__instance.NormalWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
+                {
+                    return;
+                }
+                if (__instance.StarvingWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
+                {
+                    return;
+                }
+                __result = Implementation.WolfRandomShouldFlee(__instance);
+            }
+        }
+    }
+    [HarmonyPatch(typeof(BaseAi), "ProcessHoldGround")]
+    internal class BaseAi_IsPlayerAThreat
+    {
+        internal static void Postfix()
+        {
+            if (!GameManager.GetPlayerManagerComponent().PlayerIsZooming()) // Reset when not zooming.
+            {
+                Implementation.ResetShouldFlee();
+            }
+        }
+    }
+    [HarmonyPatch(typeof(BaseAi), "AttackOrFleeAfterNearMissGunshot")]
+    internal class BaseAi_AttackOrFleeAfterNearMissGunshot
+    {
+        internal static void Postfix(BaseAi __instance, ref bool __result)
+        {
+            if (__instance.Timberwolf && __instance.GetAiMode() == AiMode.HoldGround)
+            {
+                __result = true;
+            }
+        }
+    }
+    //* Stalking wolves behavior when player aims.
+    [HarmonyPatch(typeof(BaseAi), "ProcessStalking")]
+    internal class BaseAi_ProcessStalking
+    {
+        internal static void Prefix()
+        {
+            BaseAi_UseFixedStalkingSpeed.processStalking = true;
+        }
+        internal static void Postfix()
+        {
+            BaseAi_UseFixedStalkingSpeed.processStalking = false;
+        }
+    }
+    [HarmonyPatch(typeof(BaseAi), "UseFixedStalkingSpeed")]
+    internal class BaseAi_UseFixedStalkingSpeed
+    {
+        internal static bool processStalking = false;
+        internal static void Postfix(BaseAi __instance, ref bool __result)
+        {
+            if (!processStalking || __instance.m_AiSubType != AiSubType.Wolf)
+            {
+                return;
+            }
+            processStalking = false;
+            switch (Settings.Get().wolf_stalking_behavior)
+            {
+                case AnimalBehavior_Settings.WolfStalkingBehavior.Random:
+                    bool skipAttack = !Implementation.WolfRandomShouldAttack(__instance);
+                    __result = skipAttack;
+                    return;
+                case AnimalBehavior_Settings.WolfStalkingBehavior.Nothing:
+                    __result = true;
+                    return;
+                case AnimalBehavior_Settings.WolfStalkingBehavior.Vanilla:
+                    return;
+            }
+
+        }
+    }
+    //* Bears ignore flares.
+    [HarmonyPatch(typeof(BaseAi), "MaybeHoldGroundForRedFlareForAttack")]
+    internal class BaseAi_MaybeHoldGroundForRedFlareForAttack
+    {
+        internal static bool Prefix(BaseAi __instance, ref bool __result)
+        {
+            if (__instance.m_AiSubType == AiSubType.Bear && Settings.Get().bear_ignore_flare)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+    }
+    [HarmonyPatch(typeof(BaseAi), "MaybeHoldGroundForBlueFlareForAttack")]
+    internal class BaseAi_MaybeHoldGroundForBlueFlareForAttack
+    {
+        internal static bool Prefix(BaseAi __instance, ref bool __result)
+        {
+            if (__instance.m_AiSubType == AiSubType.Bear && Settings.Get().bear_ignore_marine_flare)
+            {
+                __result = false;
+                return false;
+            }
+            return true;
+        }
+    }
+    //* Custom bleed out modifier. Stackable bleed out.
+    [HarmonyPatch(typeof(BaseAi), "ApplyDamage", new System.Type[] { typeof(float), typeof(float), typeof(DamageSource), typeof(string) })]
+    internal class BaseAi_ApplyDamage
+    {
+        internal static void Prefix(BaseAi __instance, float damage, ref float bleedOutMintues, DamageSource damageSource, string collider)
+        {
+            if (collider == "StruggleTap") // Wolf struggle.
+            {
+                bleedOutMintues *= Settings.Get().bleed_out_modifier_wolf_struggle;
+            }
+            else
+            {
+                bleedOutMintues *= Settings.Get().bleed_out_modifier;
+            }
+            if (Settings.Get().stackable_bleed_out
+                && __instance.IsBleedingOut() && !Utils.IsZero(bleedOutMintues))
+            {
+                float bleedProgress = __instance.m_ElapsedBleedingOutMinutes / __instance.m_DeathAfterBleeingOutMinutes;
+                if (bleedProgress >= 1) { return; }
+                float sum = bleedOutMintues + __instance.m_DeathAfterBleeingOutMinutes;
+                float product = bleedOutMintues * __instance.m_DeathAfterBleeingOutMinutes;
+                float combinedBleedOut = product / sum;
+                float newBleedProgress = combinedBleedOut * bleedProgress;
+                __instance.m_DeathAfterBleeingOutMinutes = combinedBleedOut;
+                __instance.m_ElapsedBleedingOutMinutes = newBleedProgress;
+            }
+        }
+    }
+    //* Blood decals lifetime.
+    [HarmonyPatch(typeof(DynamicDecalsManager), "ComputeDecalProjectorLifeTime")]
+    internal class DynamicDecalsManager_ComputeDecalProjectorLifeTime
+    {
+        internal static void Prefix(DynamicDecalsManager __instance, DecalProjectorType projectorType)
+        {
+            if (projectorType == DecalProjectorType.AnimalBlood)
+            {
+                if (Settings.Get().blood_drop_random_lifetime)
+                {
+                    float rand = UnityEngine.Random.value;
+                    __instance.m_NPCDecalsLifeTimeHours = Implementation.RandomValueBetween(Settings.Get().blood_drop_min_lifetime, Settings.Get().blood_drop_lifetime, rand);
+                    __instance.m_NPCDecalsLifeTimeInBlizzardHours = Implementation.RandomValueBetween(Settings.Get().blood_drop_min_lifetime_blizzard, Settings.Get().blood_drop_lifetime_blizzard, rand);
+                    __instance.m_NPCDecalsLifeTimeInHeavySnowHours = Implementation.RandomValueBetween(Settings.Get().blood_drop_min_lifetime_heavy_snow, Settings.Get().blood_drop_lifetime_heavy_snow, rand);
+                    __instance.m_NPCDecalsLifeTimeInHighWindsHours = Implementation.RandomValueBetween(Settings.Get().blood_drop_min_lifetime_high_winds, Settings.Get().blood_drop_lifetime_high_winds, rand);
+                }
+                else
+                {
+                    __instance.m_NPCDecalsLifeTimeHours = Settings.Get().blood_drop_lifetime;
+                    __instance.m_NPCDecalsLifeTimeInBlizzardHours = Settings.Get().blood_drop_lifetime_blizzard;
+                    __instance.m_NPCDecalsLifeTimeInHeavySnowHours = Settings.Get().blood_drop_lifetime_heavy_snow;
+                    __instance.m_NPCDecalsLifeTimeInHighWindsHours = Settings.Get().blood_drop_lifetime_high_winds;
+                }
+                if (__instance.m_DynamicDecalProjectors.Count > __instance.m_MaxNonPlacedDynamicDecals)
+                {
+                    __instance.RemoveOldestNonPlacedDecal();
+                }
+            }
+        }
+    }
+    //* Maximum decals.
+    [HarmonyPatch(typeof(DynamicDecalsManager), "InstantiateDecalProjectorInstances")]
+    internal class DynamicDecalsManager_InstantiateDecal
+    {
+        internal static void Postfix(DynamicDecalsManager __instance)
+        {
+            __instance.m_MaxNonPlacedDynamicDecals = Settings.Get().maximum_decals;
+            int missingDecals = __instance.m_MaxNonPlacedDynamicDecals + __instance.m_MaxPlacedDynamicDecals + __instance.m_PoolSizeIncrement - __instance.m_Pool_DecalProjectorInstances.Count;
+            if (LoadScene_Load.restore)
+            {
+                missingDecals -= LoadScene_Load.decalsToRestore.Count;
+            }
+            if (missingDecals > 0)
+            {
+                MelonLogger.Msg("Current decals: {0}, create missing decals: {1}.", __instance.m_Pool_DecalProjectorInstances.Count, missingDecals);
+                __instance.InstantiateDecalProjectorInstances(missingDecals);
+            }
+        }
+    }
+    [HarmonyPatch(typeof(SaveGameSystem), "LoadSceneData", new System.Type[] { typeof(string), typeof(string) })]
+    internal class SaveGameSystem_LoadSceneData
+    {
+        internal static void Postfix()
+        {
+            if (LoadScene_Load.restore && LoadScene_Load.decalsToRestore.Count != 0)
+            {
+                MelonLogger.Msg("Restored decals: {0}.", LoadScene_Load.decalsToRestore.Count);
+                GameManager.GetDynamicDecalsManager().m_DynamicDecalProjectors = LoadScene_Load.decalsToRestore;
+            }
+            LoadScene_Load.restore = false;
+        }
+    }
+    [HarmonyPatch(typeof(LoadScene), "LoadLevelWhenFadeOutComplete")]
+    internal class LoadScene_Load
+    {
+        internal static string previousScene;
+        internal static Il2CppSystem.Collections.Generic.List<DecalProjectorInstance> previousDecals;
+        internal static bool restore = false;
+        internal static Il2CppSystem.Collections.Generic.List<DecalProjectorInstance> decalsToRestore;
+
+        internal static void Prefix(LoadScene __instance)
+        {
+            if (Settings.Get().restore_blood)
+            {
+                if (__instance.GetSceneToLoad() == previousScene)
+                {
+                    decalsToRestore = previousDecals;
+                    restore = true;
+                }
+                else
+                {
+                    restore = false;
+                }
+                previousScene = GameManager.m_ActiveScene;
+                previousDecals = GameManager.GetDynamicDecalsManager().m_DynamicDecalProjectors;
+            }
+        }
+    }
+    //* Custom animal values.
+    [HarmonyPatch(typeof(BaseAi), "DoCustomModeModifiers")]
+    internal class BaseAi_DoCustomModeModifiers
+    {
+        internal static void Postfix(BaseAi __instance)
+        {
+            switch (__instance.m_AiSubType)
+            {
+                case AiSubType.Wolf:
+                    if (__instance.Timberwolf)
+                    {
+                        Implementation.ApplyTimberwolfSettings(__instance);
+                    }
+                    else
+                    {
+                        Implementation.ApplyWolfSettings(__instance);
+                    }
+                    break;
+                case AiSubType.Stag:
+                    Implementation.ApplyDeerSettings(__instance);
+                    break;
+                case AiSubType.Moose:
+                    Implementation.ApplyMooseSettings(__instance);
+                    break;
+                case AiSubType.Rabbit:
+                    Implementation.ApplyRabbitSettings(__instance);
+                    break;
+                case AiSubType.Bear:
+                    Implementation.ApplyBearSettings(__instance);
+                    break;
+            }
+        }
+    }
+    //* Rabbit stun behavior.
+    [HarmonyPatch(typeof(BaseAi), "Stun")]
+    internal class BaseAi_Stun
+    {
+        internal static bool Prefix(BaseAi __instance)
+        {
+            if (__instance.m_AiSubType == AiSubType.Rabbit &&
+            Settings.Get().rabbit_stun_behavior != StunBehavior.Vanilla)
+            {
+                bool kill = Utils.RollChance(Settings.Get().rabbit_kill_on_hit_chance);
+                if (kill)
+                {
+                    __instance.SetAiMode(AiMode.Dead);
+                    return false;
+                }
+                if (Settings.Get().rabbit_stun_behavior == StunBehavior.AllRandom)
+                {
+                    float min = Settings.Get().rabbit_minimum_stun_duration;
+                    float max = Settings.Get().rabbit_maximum_stun_duration;
+                    float random_dur = UnityEngine.Random.Range(min, max);
+                    __instance.m_StunSeconds = random_dur;
+                }
+            }
+            return true;
+        }
+    }
+}

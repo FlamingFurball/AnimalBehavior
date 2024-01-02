@@ -1,0 +1,10 @@
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\AnimalBehavior.csproj.AssemblyReference.cache
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\AnimalBehavior.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\AnimalBehavior.csproj.CoreCompileInputs.cache
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\bin\Debug\net6.0\AnimalBehavior.deps.json
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\bin\Debug\net6.0\AnimalBehavior.dll
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\bin\Debug\net6.0\AnimalBehavior.pdb
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\AnimalBehavior.dll
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\refint\AnimalBehavior.dll
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\AnimalBehavior.pdb
+C:\Users\dufre\Desktop\TLDMODTEMPLATE\obj\Debug\net6.0\ref\AnimalBehavior.dll
