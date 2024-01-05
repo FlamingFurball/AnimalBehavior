@@ -1,4 +1,4 @@
-# Animal Behavior for *The Long Dark* by Remodor:
+# Animal Behavior for *The Long Dark* by Remodor, updated by CaptainThorne:
 
 This is a mod for **The Long Dark** by Hinterland Studio, Inc.
 
@@ -9,7 +9,7 @@ These mods are obsolete and have to be **removed** in order to use this mod!
 
 ## Description
 
-The default animal behavior were to easy in my opinion and not really challenging. Especially rabbits needed a lot of tweaking. Besides adding many new options, like a fleeing duration, bleed out modifier, wolf behavior on aiming, etc., I also wanted to improve [DetectionRange](https://github.com/ds5678/DetectionRange) and [TweakRabbits](https://github.com/ds5678/TweakRabbits). Instead of having multiple animal behavior mods, with the permission of [ds5678](https://github.com/ds5678) I decided to include all animal mods polished and enhanced into this one.
+The default animal behavior were too easy in my opinion and not really challenging. Especially rabbits needed a lot of tweaking. Besides adding many new options, like a fleeing duration, bleed out modifier, wolf behavior on aiming, etc., I also wanted to improve [DetectionRange](https://github.com/ds5678/DetectionRange) and [TweakRabbits](https://github.com/ds5678/TweakRabbits). Instead of having multiple animal behavior mods, with the permission of [ds5678](https://github.com/ds5678) I decided to include all animal mods polished and enhanced into this one.
 
 ## Settings
 
