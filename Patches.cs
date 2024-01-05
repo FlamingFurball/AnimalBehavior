@@ -26,22 +26,19 @@ namespace AnimalBehavior
             (Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAim ||
             Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAimRandom))
             {
-                if (__instance.Timberwolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
+                if (__instance.Timberwolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
                 {
                     return;
                 }
-                if (__instance.NormalWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
+                if (__instance.NormalWolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
                 {
                     return;
                 }
-                if (__instance.StarvingWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
+                if (__instance.StarvingWolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
                 {
                     return;
                 }
-                else
-                {
-                    dotProductThreshold = Settings.Get().wolf_holding_ground_aim_accuracy / 100f;
-                }
+                dotProductThreshold = Settings.Get().wolf_holding_ground_aim_accuracy / 100f;
             }
 
 
@@ -50,15 +47,15 @@ namespace AnimalBehavior
         {
             if (__result && __instance.m_AiSubType == AiSubType.Wolf && Settings.Get().wolf_holding_ground_behavior == WolfHoldingGround.DirectAimRandom)
             {
-                if (__instance.Timberwolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
+                if (__instance.Timberwolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Wolves) // Timberwolves but setting is only wolves.
                 {
                     return;
                 }
-                if (__instance.NormalWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
+                if (__instance.NormalWolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Wolves but setting is only timberwolves.
                 {
                     return;
                 }
-                if (__instance.StarvingWolf && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
+                if (__instance.StarvingWolf != null && Settings.Get().wolf_holding_ground_wolves == WolfHoldingGroundWolves.Timberwolves) // Starving Wolves are a thing.
                 {
                     return;
                 }
@@ -279,7 +276,7 @@ namespace AnimalBehavior
             switch (__instance.m_AiSubType)
             {
                 case AiSubType.Wolf:
-                    if (__instance.Timberwolf)
+                    if (__instance.Timberwolf != null)
                     {
                         Implementation.ApplyTimberwolfSettings(__instance);
                     }

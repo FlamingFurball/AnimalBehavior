@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "RQvvFpl57DTBNSjkK7PBPFpzsOS7/duRcRijh5NFTXrxmYO/UmEvKNrjoQ3Oy0Gy1mKok8CwBV0pnDEvBTh2kA==",
+  "dgSpecHash": "TI7U4/CSUpSrMrnqZJlj2EoSZVjRQSbbK0uCLcccikKFKLxSwc8LOGheqiXKNkFhraSDje9d2+AYK9G2tJoqmg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\dufre\\Desktop\\AnimalBehaviors (New)\\AnimalBehavior.csproj",
+  "projectFilePath": "C:\\Users\\dufre\\Desktop\\AnimalBehaviors (New)\\AnimalBehaviors\\AnimalBehavior.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dufre\\.nuget\\packages\\asmresolver\\5.0.0\\asmresolver.5.0.0.nupkg.sha512",
     "C:\\Users\\dufre\\.nuget\\packages\\asmresolver.dotnet\\5.0.0\\asmresolver.dotnet.5.0.0.nupkg.sha512",
